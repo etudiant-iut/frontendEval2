@@ -9562,8 +9562,25 @@
                     }
 
                     modifyticket(e, t) { return new Promise((n, r) => { this.http.put("http://localhost:3000/api/ticket/" + e, t).subscribe(e => { n(e) }, e => { r(e) }) }) }
-                    modifyticketWithFile(e, t, n) { return new Promise((r, s) => { let i; "string" == typeof n ? (t.imageUrl = n, i = t) : (i = new FormData, i.append("ticket", JSON.stringify(t)), i.append("image", n, t.title)), this.http.put("http://localhost:3000/api/ticket/" + e, i).subscribe(e => { r(e) }, e => { s(e) }) }) }
-                    deleteticket(e) { return new Promise((t, n) => { this.http.delete("http://localhost:3000/api/ticket/" + e).subscribe(e => { t(e) }, e => { n(e) }) }) }
+                    modifyticketWithFile(e, t, n) { 
+                        return new Promise((r, s) => { 
+                            let i; 
+                            "string" == typeof n ? (t.imageUrl = n, i = t) : (i = new FormData, i.append("ticket", JSON.stringify(t)), i.append("image", n, t.title)), 
+                            this.http.put("http://localhost:3000/api/ticket/" + e, i).subscribe(e => { r(e) }, e => { s(e) }) }) 
+                        }
+                    RmodifyticketWithFile(e, t, n) { 
+                        return new Promise((r, s) => { 
+                            let i; 
+                            "string" == typeof n ? (t.imageUrl = n, i = t) : (i = new FormData, i.append("ticket", JSON.stringify(t)), i.append("image", n, t.title)), 
+                            this.http.put("http://localhost:3000/api/ticket/" + e, i).subscribe(e => { r(e) }, e => { s(e) }) }) 
+                        }
+                    deleteticket(e) { 
+                        return new Promise((t, n) => { this.http.delete("http://localhost:3000/api/ticket/" + e).subscribe(e => { t(e) }, e => { n(e) }) }) 
+                    }
+                    Rdeleteticket(e) { 
+                        console.info(e);
+                        return new Promise((t, n) => { this.http.delete("http://localhost:3000/cherche/ticket/" + e).subscribe(e => { t(e) }, e => { n(e) }) }) 
+                    }
                 } return e.ngInjectableDef = le({ factory: function () { return new e(xe(np)) }, token: e, providedIn: "root" }), e
             })();
 
@@ -10139,7 +10156,7 @@
                             case 1: case 2: this.router.navigate(["/affiche-tickets/all-tickets"]); break;
                             case 3: this.router.navigate(["/ajoute-ticket/all-tickets"]); break;
                             case 4: this.router.navigate(["/traiter-ticket/all-tickets"]); break;
-                            case 4: this.router.navigate(["/cherche-tickets/all-tickets"])
+                            case 5: this.router.navigate(["/cherche-tickets/all-tickets"])
                         }
                     })
                 }
@@ -10176,12 +10193,16 @@
                     }
                 }
                 onDelete() {
-                    this.loading = !0, this.stuffService.deleteticket(this.ticket._id).then(() => {
+                    console.info('onDelete VyId');
+                    this.loading = !0, this.stuffService.Rdeleteticket(this.ticket._id).then(() => {
+                        console.info('onDelete VyId');
+                        console.info(this.part);
+                        console.info(this.part);
                         switch (this.loading = !1, this.part) {
                             case 1: case 2: this.router.navigate(["/affiche-tickets/all-tickets"]); break;
                             case 3: this.router.navigate(["/ajoute-ticket/all-tickets"]); break;
                             case 4: this.router.navigate(["/traiter-ticket/all-tickets"]); break;
-                            case 4: this.router.navigate(["/cherche-tickets/all-tickets"])
+                            case 5: this.router.navigate(["/cherche-tickets/all-tickets"])
                         }
                     })
                 }
@@ -11022,6 +11043,56 @@
 
             var N_ = Cr("app-new-ticket-with-upload", S_, P_, {}, {}, []);
             var Nrech_ = Cr("app-cherche-ticket", Srech_, Prech_, {}, {}, []);
+
+
+            class Rrech_ {
+                constructor(e, t, n, r, s, i) {
+                    this.state = e,
+                        this.formBuilder = t,
+                        this.stuffService = n,
+                        this.route = r,
+                        this.router = s,
+                        this.auth = i,
+                        this.loading = !1
+                }
+                ngOnInit() {
+                    this.loading = !0, this.state.mode$.next("form"), this.userId = this.auth.userId, this.route.params.subscribe(e => {
+                        this.stuffService.getticketById(e.id).then(e => {
+                            this.ticket = e,
+                                this.ticketForm = this.formBuilder.group({ title: [e.title, Rm.required], description: [e.description, Rm.required], priority: [e.priority / 100, Rm.required], image: [e.imageUrl, Rm.required, C_] }),
+                                this.imagePreview = e.imageUrl, this.loading = !1
+                        })
+                    })
+                }
+                onSubmit() {
+                    this.loading = !0;
+                    const e = new _y;
+                    e._id = this.ticket._id,
+                        e.title = this.ticketForm.get("title").value,
+                        e.description = this.ticketForm.get("description").value,
+                        e.priority = 100 * this.ticketForm.get("priority").value,
+                        e.imageUrl = "",
+                        e.userId = this.userId,
+                        this.stuffService.RmodifyticketWithFile(this.ticket._id, e, this.ticketForm.get("image").value).then(() => {
+                            this.ticketForm.reset(),
+                                this.loading = !1,
+                                this.router.navigate(["/cherche-tickets/all-tickets"])
+                        },
+                            e => { this.loading = !1, this.errorMessage = e.message })
+                }
+                onImagePick(e) {
+                    const t = e.target.files[0];
+                    console.log(t),
+                        this.ticketForm.get("image").patchValue(t),
+                        this.ticketForm.get("image").updateValueAndValidity();
+                    const n = new FileReader;
+                    n.onload = () => { this.imagePreview = this.ticketForm.get("image").valid ? n.result : null }, n.readAsDataURL(t)
+                }
+            }
+
+
+
+
             class R_ {
                 constructor(e, t, n, r, s, i) {
                     this.state = e,
@@ -11182,7 +11253,16 @@
                     (function (e, t) { e(t, 1, 0) }), null)
             }
 
+            function RU_(e) {
+                return qi(0, [
+                    (e()(), Ai(0, 0, null, null, 1, "app-cherche-tickets-with-upload", [], null, null, null, L_, D_)),
+                    Wr(1, 114688, null, 0, Rrech_, [Ud, gy, vy, Zc, od, _p], null, null)
+                ],
+                    (function (e, t) { e(t, 1, 0) }), null)
+            }
+
             var j_ = Cr("app-modify-ticket-with-upload", R_, U_, {}, {}, []);
+            var rj_ = Cr("app-cherche-tickets-with-upload", Rrech_, RU_, {}, {}, []);
 
             class $_ { constructor(e) { this.router = e } ngOnInit() { } onNavigate(e) { this.router.navigate([e]) } }
 
@@ -11262,7 +11342,7 @@
                     }
                     return { factory: null, providersByKey: t, providers: e, modules: n, isRoot: r }
                 }([
-                    gr(512, Ht, Bt, [[10, [Ld, Rpp, Rp, ky, kyc, Fy, Fyrech, FyrechE, FyrechD, FyrechP, By, ById, Byrech, Xy, n_, nc_, u_, m_, w_, N_, Nrech_, j_, q_, Q_]], [3, Ht], Ie]),
+                    gr(512, Ht, Bt, [[10, [Ld, Rpp, Rp, ky, kyc, Fy, Fyrech, FyrechE, FyrechD, FyrechP, By, ById, Byrech, Xy, n_, nc_, u_, m_, w_, N_, Nrech_, j_, rj_, q_, Q_]], [3, Ht], Ie]),
                     gr(5120, ks, Ei, [[3, ks]]),
                     gr(4608, yl, _l, [ks, [2, ml]]),
                     gr(5120, us, Ti, [zs]),
@@ -11329,7 +11409,7 @@
                             { path: "affiche-tickets", component: Ap, children: [{ path: "new-ticket", component: by }, { path: "all-tickets", component: Ay }, { path: "ticket/:id", component: Vy }, { path: "modify-ticket/:id", component: zy }, { path: "", pathMatch: "full", redirectTo: "all-tickets" }, { path: "**", redirectTo: "all-tickets" }] },
                             { path: "ajoute-ticket", component: Jy, children: [{ path: "new-ticket", component: by, canActivate: [Z_] }, { path: "all-tickets", component: Ay, canActivate: [Z_] }, { path: "ticket/:id", component: Vy, canActivate: [Z_] }, { path: "modify-ticket/:id", component: zy, canActivate: [Z_] }, { path: "auth/login", component: r_ }, { path: "auth/signup", component: c_ }, { path: "", pathMatch: "full", redirectTo: "auth/login" }, { path: "**", redirectTo: "all-tickets" }] },
                             { path: "traiter-ticket", component: y_, children: [{ path: "new-ticket", component: S_, canActivate: [Z_] }, { path: "all-tickets", component: Ay, canActivate: [Z_] }, { path: "ticket/:id", component: Vy, canActivate: [Z_] }, { path: "modify-ticket/:id", component: R_, canActivate: [Z_] }, { path: "auth/login", component: r_ }, { path: "auth/signup", component: c_ }, { path: "", pathMatch: "full", redirectTo: "auth/login" }, { path: "**", redirectTo: "all-tickets" }] },
-                            { path: "cherche-tickets", component: Apo, children: [{ path: "cherche-ticket", component: Srech_, canActivate: [Z_] }, { path: "some-tickets/:title", component: Ayrech, canActivate: [Z_] }, { path: "tickets-email/:email", component: AyrechE, canActivate: [Z_] }, { path: "tickets-description/:description", component: AyrechD, canActivate: [Z_] }, { path: "tickets-priority/:priority", component: AyrechP, canActivate: [Z_] }, { path: "all-tickets", component: Ay, canActivate: [Z_] }, { path: "ticket/:id", component: VyId, canActivate: [Z_] }, { path: "modify-ticket/:id", component: R_, canActivate: [Z_] }, { path: "auth/login", component: r_ }, { path: "auth/signup", component: c_ }, { path: "", pathMatch: "full", redirectTo: "auth/login" }, { path: "**", redirectTo: "all-tickets" }] },
+                            { path: "cherche-tickets", component: Apo, children: [{ path: "cherche-ticket", component: Srech_, canActivate: [Z_] }, { path: "some-tickets/:title", component: Ayrech, canActivate: [Z_] }, { path: "tickets-email/:email", component: AyrechE, canActivate: [Z_] }, { path: "tickets-description/:description", component: AyrechD, canActivate: [Z_] }, { path: "tickets-priority/:priority", component: AyrechP, canActivate: [Z_] }, { path: "all-tickets", component: Ay, canActivate: [Z_] }, { path: "ticket/:id", component: VyId, canActivate: [Z_] }, { path: "modify-ticket/:id", component: Rrech_, canActivate: [Z_] }, { path: "auth/login", component: r_ }, { path: "auth/signup", component: c_ }, { path: "", pathMatch: "full", redirectTo: "auth/login" }, { path: "**", redirectTo: "all-tickets" }] },
                             { path: "default", component: $_ }, { path: "", pathMatch: "full", component: $_ }, { path: "**", redirectTo: "" }]]
                     }), []),
                     gr(1024, od, Id, [ai, Ac, dd, il, vt, ci, Ds, Yh, bd, [2, td], [2, Xh]]),
